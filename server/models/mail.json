@@ -1,0 +1,52 @@
+{
+  "name": "mail",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "from": {
+      "type": "string",
+      "required": true
+    },
+    "to": {
+      "type": [
+        "string"
+      ],
+      "required": true
+    },
+    "cc": {
+      "type": [
+        "string"
+      ]
+    },
+    "bcc": {
+      "type": [
+        "string"
+      ]
+    },
+    "subject": {
+      "type": "string",
+      "required": true
+    },
+    "text": {
+      "type": "string"
+    },
+    "html": {
+      "type": "string"
+    },
+    "time_stamp": {
+      "type": "date"
+    },
+    "attachments": {
+      "type": [
+        "any"
+      ]
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

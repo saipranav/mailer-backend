@@ -33,7 +33,7 @@
     "public": false
   },
   "mail": {
-    "dataSource": "local-mongodb",
+    "dataSource": "mongodb",
     "public": true
   }
 }

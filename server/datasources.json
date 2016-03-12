@@ -3,8 +3,8 @@
     "name": "db",
     "connector": "memory"
   },
-  "local-mongodb": {
-    "name": "local-mongodb",
+  "mongodb": {
+    "name": "mongodb",
     "connector": "mongodb"
   }
 }

@@ -1,89 +1,99 @@
-var fs = require('fs');
-var nodemailer = require("nodemailer");
-var ics_creator = require("ics-creator");
-var application_config = require("../application-config");
-var smtp_config = application_config.mail.smtp;
+var fs = require( "fs" );
+var nodemailer = require( "nodemailer" );
+var icsCreator = require( "ics-creator" );
+var applicationConfig = require( "../application-config" );
+var smtpConfig = applicationConfig.mail.smtp;
 
-var smtp_transport = nodemailer.createTransport(smtp_config);
-smtp_transport.verify(function(error, success) {
-   if (error) {
-        console.log(error);
-   } else {
-        console.log('Server is ready to take our messages');
-   }
-});
+var smtpTransport = nodemailer.createTransport( smtpConfig );
+smtpTransport.verify( function ( error , success ) {
+  if ( error ) {
+    console.log( error );
+  } else {
+    console.log( "Server is ready to take our messages" );
+  }
+} );
 
-module.exports = function(Mail) {
-	Mail.observe('before save', function(ctx, next) {
-		var mail_options = prepare_mail_with_invite(ctx.instance);
-		smtp_transport.sendMail(mail_options, function(error, response) {
-		    if(error) {
-		        console.log(error);
-		        var err = new Error("Error while sending mail", error);
-				err.statusCode = 500;
-				next(err);
-		    } else {
-		        console.log('Message sent');
-		        ctx.instance.time_stamp = Date.now();
-		        next();
-		    }
-		});
-	});
+module.exports = function ( Mail ) {
+  Mail.observe( "before save" , function ( ctx , next ) {
+    var mailOptions = prepareMailWithInvite( ctx.instance );
+    smtpTransport.sendMail( mailOptions , function ( error , response ) {
+      if ( error ) {
+        console.log( error );
+        var err = new Error( "Error while sending mail" , error );
+        err.statusCode = 500;
+        next( err );
+      } else {
+        console.log( "Message sent" );
+        ctx.instance.timeStamp = Date.now();
+        next();
+      }
+    } );
+  } );
 };
 
-function prepare_mail_with_invite(instance) {
-		var mail_instance = {};
-		mail_instance.from = instance.from;
-		mail_instance.subject = instance.subject;
-		mail_instance.text = instance.text;
-		if(instance.to) {
-			mail_instance.to = instance.to.join(',');
-		}
-		if(instance.cc) {
-			mail_instance.cc = instance.cc.join(',');
-		}
-		if(instance.bcc) {
-			mail_instance.bcc = instance.bcc.join(',');
-			mail_instance.location = mail_instance.bcc.substr(0, mail_instance.bcc.indexOf('@')); 
-		}
-		if(instance.html) {
-			mail_instance.html = read_template(instance.html);
-			if(instance.html == 'invite') {
-				mail_instance.attachments = [{
-			        filename: 'sign.png',
-			        path: './server/images/sign.png',
-			        cid: 'sign'
-			    }];
-			}
-		}
-	var ics = ics_creator.createNodemailerEvent({
-		'organizerName': 'Sai Pranav',
-		'organizerEmail': mail_instance.from,
-		'attendeeName':'',
-		'attendeeEmail': mail_instance.to,
-		'body': mail_instance.html,
-		'attach': mail_instance.attachments,
-		'subject': mail_instance.subject,
-		'location':mail_instance.location,
-		'uuid': 'Fastest KT invite ID',
-		'start': new Date("28 Feb,2016 15:00"),
-		'end': new Date("28 Feb,2016 16:00"),
-		'currentTime': new Date()
-	},'event');
-	var mail_options = {
-	    from: mail_instance.from,
-	    to: mail_instance.to,
-	    subject: mail_instance.subject,
-	    cc: mail_instance.cc,
-	    bcc: mail_instance.bcc,
-	    text: mail_instance.text,
-	    html: mail_instance.html,
-	    attachments: mail_instance.attachments,
-	    icalEvent: ics
-	};
-	return mail_options;
+function prepareMailWithInvite ( instance ) {
+  var mailInstance = {};
+  mailInstance.from = instance.from;
+  mailInstance.subject = instance.subject;
+  mailInstance.text = instance.text;
+
+  if ( instance.to ) {
+    mailInstance.to = instance.to.join( "," );
+  }
+
+  if ( instance.cc ) {
+    mailInstance.cc = instance.cc.join( "," );
+  }
+
+  if ( instance.bcc ) {
+    mailInstance.bcc = instance.bcc.join( "," );
+    mailInstance.location = mailInstance.bcc
+                                        .substr( 0 ,
+                                                mailInstance.bcc
+                                                            .indexOf( "@" )
+                                        );
+  }
+
+  if ( instance.html ) {
+    mailInstance.html = readTemplate( instance.html );
+    if ( "invite" == instance.html ) {
+      mailInstance.attachments = [ {
+        "cid" : "sign" ,
+        "filename" : "sign.png" ,
+        "path" : "./server/images/sign.png"
+      } ];
+    }
+  }
+
+  var ics = icsCreator.createNodemailerEvent( {
+    "attach" : mailInstance.attachments ,
+    "attendeeEmail" : mailInstance.to ,
+    "attendeeName" : "" ,
+    "body" : mailInstance.html ,
+    "currentTime" : new Date() ,
+    "end" : new Date( "28 Feb,2016 16:00" ) ,
+    "location" : mailInstance.location ,
+    "organizerEmail" : mailInstance.from ,
+    "organizerName" : "Sai Pranav" ,
+    "start" : new Date( "28 Feb,2016 15:00" ) ,
+    "subject" : mailInstance.subject ,
+    "uuid" : "Fastest KT invite ID"
+  } , "event" );
+
+  var mailOptions = {
+    "attachments" : mailInstance.attachments ,
+    "bcc" : mailInstance.bcc ,
+    "cc" : mailInstance.cc ,
+    "from" : mailInstance.from ,
+    "html" : mailInstance.html ,
+    "icalEvent" : ics ,
+    "subject" : mailInstance.subject ,
+    "text" : mailInstance.text ,
+    "to" : mailInstance.to
+  };
+  return mailOptions;
 }
 
-function read_template(template_name) {
-	return fs.createReadStream('./server/templates/'+template_name+'.html');
+function readTemplate ( templateName ) {
+  return fs.createReadStream( "./server/templates/" + templateName + ".html" );
 }

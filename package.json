@@ -15,6 +15,7 @@
     "loopback-connector-mongodb": "^1.13.3",
     "loopback-datasource-juggler": "^2.39.0",
     "nodemailer": "^2.2.1",
+    "request": "^2.69.0",
     "serve-favicon": "^2.0.1"
   },
   "devDependencies": {
